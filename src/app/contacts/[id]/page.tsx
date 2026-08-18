@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
-import { updateContact } from '../actions'
+import { updateContact, deleteContact } from '../actions'
 import { SubmitButton } from '@/app/login/submit-button'
+import { DeleteButton } from '@/components/DeleteButton'
 import Link from 'next/link'
 import { ArrowLeft, MessageCircle, Phone } from 'lucide-react'
 import { notFound } from 'next/navigation'
@@ -27,6 +28,7 @@ export default async function EditContactPage({
   ]
 
   const updateContactWithId = updateContact.bind(null, id)
+  const deleteContactWithId = deleteContact.bind(null, id)
 
   return (
     <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
@@ -142,9 +144,14 @@ export default async function EditContactPage({
           </div>
         </section>
 
-        <div className="pt-4 border-t border-gray-200 sticky bottom-0 bg-white/90 backdrop-blur-sm p-4 -mx-6 -mb-6 rounded-b-lg">
+        <div className="pt-4 border-t border-gray-200 sticky bottom-0 bg-white/90 backdrop-blur-sm p-4 -mx-6 -mb-6 rounded-b-lg flex gap-3">
+          <DeleteButton
+            action={deleteContactWithId}
+            label="Delete Contact"
+            confirmMessage="Delete this contact permanently? This cannot be undone."
+          />
           <SubmitButton 
-            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 rounded-lg shadow-md transition-colors text-lg"
+            className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 rounded-lg shadow-md transition-colors text-lg"
             pendingText="Saving Changes..."
           >
             Save Changes

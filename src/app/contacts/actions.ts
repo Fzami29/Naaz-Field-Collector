@@ -69,3 +69,18 @@ export async function updateContact(id: string, formData: FormData) {
   revalidatePath('/')
   redirect(`/contacts/${id}?success=true`)
 }
+
+export async function deleteContact(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('field_contacts').delete().eq('id', id)
+
+  if (error) {
+    console.error('Error deleting contact:', error)
+    throw new Error('Failed to delete contact')
+  }
+
+  revalidatePath('/contacts')
+  revalidatePath('/')
+  redirect('/contacts')
+}

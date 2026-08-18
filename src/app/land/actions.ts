@@ -77,3 +77,18 @@ export async function updateLand(id: string, formData: FormData) {
   revalidatePath('/')
   redirect(`/land/${id}?success=true`)
 }
+
+export async function deleteLand(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('land_opportunities').delete().eq('id', id)
+
+  if (error) {
+    console.error('Error deleting land opportunity:', error)
+    throw new Error('Failed to delete land opportunity')
+  }
+
+  revalidatePath('/land')
+  revalidatePath('/')
+  redirect('/land')
+}
