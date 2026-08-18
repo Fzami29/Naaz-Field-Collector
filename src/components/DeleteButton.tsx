@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useTransition } from 'react'
 import { Trash2 } from 'lucide-react'
@@ -28,7 +28,7 @@ export function DeleteButton({
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg font-medium text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+      className="btn-danger"
     >
       <Trash2 className="h-4 w-4" />
       {isPending ? 'Deleting...' : label}
