@@ -16,6 +16,7 @@ export default async function DashboardPage() {
     { data: recentLand },
     { count: totalLandCount },
     { count: todayLandCount },
+    { count: totalMeetingsCount },
   ] = await Promise.all([
     supabase
       .from('field_contacts')
@@ -33,6 +34,9 @@ export default async function DashboardPage() {
       .from('land_opportunities')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', todayStr),
+    supabase
+      .from('contact_meetings')
+      .select('*', { count: 'exact', head: true }),
   ])
 
   return (
@@ -41,6 +45,7 @@ export default async function DashboardPage() {
       initialLand={(recentLand as LandItem[]) || []}
       totalLandCount={totalLandCount || 0}
       todayLandCount={todayLandCount || 0}
+      totalMeetingsCount={totalMeetingsCount || 0}
     />
   )
 }
