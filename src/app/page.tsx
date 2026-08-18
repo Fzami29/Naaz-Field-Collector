@@ -1,69 +1,134 @@
-import Image from "next/image";
+import { createClient } from '@/utils/supabase/server'
+import Link from 'next/link'
+import { PlusCircle, Users, Map, Clock } from 'lucide-react'
 
-export default function Home() {
+export default async function Dashboard() {
+  const supabase = await createClient()
+
+  // Get start of today for filtering
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayStr = today.toISOString()
+
+  // Fetch counts
+  const [
+    { count: totalContacts },
+    { count: todayContacts },
+    { count: totalLand },
+    { count: todayLand }
+  ] = await Promise.all([
+    supabase.from('field_contacts').select('*', { count: 'exact', head: true }),
+    supabase.from('field_contacts').select('*', { count: 'exact', head: true }).gte('created_at', todayStr),
+    supabase.from('land_opportunities').select('*', { count: 'exact', head: true }),
+    supabase.from('land_opportunities').select('*', { count: 'exact', head: true }).gte('created_at', todayStr),
+  ])
+
+  // Fetch recent entries
+  const [
+    { data: recentContacts },
+    { data: recentLand }
+  ] = await Promise.all([
+    supabase.from('field_contacts').select('id, full_name, category, created_at').order('created_at', { ascending: false }).limit(3),
+    supabase.from('land_opportunities').select('id, owner_name, property_type, created_at').order('created_at', { ascending: false }).limit(3)
+  ])
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-500">Overview of your field collection</p>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Today's Contacts</h3>
+            <Users className="h-5 w-5 text-emerald-600" />
+          </div>
+          <p className="text-2xl font-bold text-gray-900 mt-2">{todayContacts || 0}</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Total Contacts</h3>
+            <Users className="h-5 w-5 text-gray-400" />
+          </div>
+          <p className="text-2xl font-bold text-gray-900 mt-2">{totalContacts || 0}</p>
         </div>
-      </main>
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Today's Land</h3>
+            <Map className="h-5 w-5 text-emerald-600" />
+          </div>
+          <p className="text-2xl font-bold text-gray-900 mt-2">{todayLand || 0}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-500">Total Land</h3>
+            <Map className="h-5 w-5 text-gray-400" />
+          </div>
+          <p className="text-2xl font-bold text-gray-900 mt-2">{totalLand || 0}</p>
+        </div>
+      </div>
+
+      {/* Primary Actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+        <Link href="/contacts/add" className="flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white p-4 rounded-lg shadow-sm transition-colors font-medium text-lg">
+          <PlusCircle className="h-6 w-6" />
+          Add Contact
+        </Link>
+        <Link href="/land/add" className="flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white p-4 rounded-lg shadow-sm transition-colors font-medium text-lg">
+          <PlusCircle className="h-6 w-6" />
+          Add Land
+        </Link>
+      </div>
+
+      {/* Recent Entries */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-gray-500" />
+              Recent Contacts
+            </h2>
+            <Link href="/contacts" className="text-sm text-emerald-700 hover:underline">View all</Link>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-100">
+            {recentContacts?.length === 0 ? (
+              <div className="p-6 text-center text-gray-500 text-sm">No contacts collected yet.</div>
+            ) : (
+              recentContacts?.map((contact) => (
+                <Link key={contact.id} href={`/contacts/${contact.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
+                  <div className="font-medium text-gray-900">{contact.full_name}</div>
+                  <div className="text-sm text-gray-500 mt-1">{contact.category}</div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-gray-500" />
+              Recent Land
+            </h2>
+            <Link href="/land" className="text-sm text-emerald-700 hover:underline">View all</Link>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-100">
+            {recentLand?.length === 0 ? (
+              <div className="p-6 text-center text-gray-500 text-sm">No land opportunities collected yet.</div>
+            ) : (
+              recentLand?.map((land) => (
+                <Link key={land.id} href={`/land/${land.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
+                  <div className="font-medium text-gray-900">{land.owner_name || 'Unknown Owner'}</div>
+                  <div className="text-sm text-gray-500 mt-1">{land.property_type || 'Unspecified Type'}</div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
