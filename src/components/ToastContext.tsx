@@ -33,10 +33,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const showToast = useCallback(
-    ({ type, title, message, duration = 4000 }: Omit<ToastItem, 'id'>) => {
+    ({ type, title, message, duration = 3200 }: Omit<ToastItem, 'id'>) => {
       const now = Date.now()
-      // Prevent spamming identical toasts within 1.5s
-      if (lastToastRef.current.message === message && now - lastToastRef.current.timestamp < 1500) {
+      // Prevent spamming identical toasts within 1.2s
+      if (lastToastRef.current.message === message && now - lastToastRef.current.timestamp < 1200) {
         return
       }
       lastToastRef.current = { message, timestamp: now }
@@ -60,7 +60,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, [showToast])
 
   const error = useCallback((message: string, title?: string) => {
-    showToast({ type: 'error', title: title || 'Error', message, duration: 6000 })
+    showToast({ type: 'error', title: title || 'Error', message, duration: 4500 })
   }, [showToast])
 
   const warning = useCallback((message: string, title?: string) => {

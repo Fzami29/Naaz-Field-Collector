@@ -100,7 +100,7 @@ export function ContactsListClient({
         delete next[id]
         return next
       })
-    }, 4000)
+    }, 1500)
   }, [])
 
   // ── Supabase Realtime Subscription ──────────────────────────────────────────
@@ -148,7 +148,7 @@ export function ContactsListClient({
                 delete next[deletedId]
                 return next
               })
-            }, 350)
+            }, 180)
             toast.info('Live: A contact was deleted')
           }
         }
@@ -232,7 +232,7 @@ export function ContactsListClient({
           delete next[contactId]
           return next
         })
-      }, 350)
+      }, 180)
     } catch (err: unknown) {
       console.error('Delete contact error:', err)
       const msg = err instanceof Error ? err.message : 'Failed to delete contact from Supabase.'

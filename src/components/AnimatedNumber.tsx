@@ -8,9 +8,9 @@ interface AnimatedNumberProps {
   className?: string
 }
 
-export function AnimatedNumber({ value, duration = 600, className = '' }: AnimatedNumberProps) {
-  const [displayValue, setDisplayValue] = useState(0)
-  const prevValueRef = useRef(0)
+export function AnimatedNumber({ value, duration = 320, className = '' }: AnimatedNumberProps) {
+  const [displayValue, setDisplayValue] = useState(value)
+  const prevValueRef = useRef(value)
 
   useEffect(() => {
     const startValue = prevValueRef.current
@@ -25,8 +25,8 @@ export function AnimatedNumber({ value, duration = 600, className = '' }: Animat
     const updateCounter = (currentTime: number) => {
       const elapsed = currentTime - startTime
       const progress = Math.min(elapsed / duration, 1)
-      // Ease out cubic
-      const easeOut = 1 - Math.pow(1 - progress, 3)
+      // Fast ease out quad
+      const easeOut = 1 - Math.pow(1 - progress, 2)
       const current = Math.round(startValue + (endValue - startValue) * easeOut)
       setDisplayValue(current)
 
