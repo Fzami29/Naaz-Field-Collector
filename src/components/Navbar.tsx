@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { logout } from '@/app/login/actions'
-import { Home, Users, Map, Plus, LogOut, Leaf } from 'lucide-react'
+import { Home, Users, Map, Plus, LogOut, Leaf, MessageCircle } from 'lucide-react'
 
 export async function Navbar() {
   const supabase = await createClient()
@@ -47,6 +47,11 @@ export async function Navbar() {
             <span className="text-[9px] font-semibold tracking-wide">Land</span>
           </Link>
 
+          <Link href="/whatsapp" id="nav-whatsapp" className="flex flex-col items-center justify-center gap-1 w-16 h-full text-slate-400 hover:text-emerald-400 transition-all duration-200 hover:scale-110">
+            <MessageCircle className="h-5 w-5" />
+            <span className="text-[9px] font-semibold tracking-wide">WhatsApp</span>
+          </Link>
+
           <form action={logout} className="flex items-center justify-center w-16 h-full">
             <button
               id="nav-logout-mobile"
@@ -79,6 +84,7 @@ export async function Navbar() {
                 <Link href="/" id="nav-desk-home" className="btn-ghost text-sm">Dashboard</Link>
                 <Link href="/contacts" id="nav-desk-contacts" className="btn-ghost text-sm">Contacts</Link>
                 <Link href="/land" id="nav-desk-land" className="btn-ghost text-sm">Land</Link>
+                <Link href="/whatsapp" id="nav-desk-whatsapp" className="btn-ghost text-sm">WhatsApp</Link>
               </div>
             </div>
 

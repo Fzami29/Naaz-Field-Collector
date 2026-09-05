@@ -120,12 +120,12 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update field_contacts' AND tablename = 'field_contacts') THEN
         CREATE POLICY "Users can update field_contacts" ON field_contacts
-            FOR UPDATE USING (auth.uid() IS NOT NULL);
+            FOR UPDATE USING (auth.uid() = created_by) WITH CHECK (auth.uid() = created_by);
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can delete field_contacts' AND tablename = 'field_contacts') THEN
         CREATE POLICY "Users can delete field_contacts" ON field_contacts
-            FOR DELETE USING (auth.uid() IS NOT NULL);
+            FOR DELETE USING (auth.uid() = created_by);
     END IF;
 END $$;
 
@@ -144,12 +144,12 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update land_opportunities' AND tablename = 'land_opportunities') THEN
         CREATE POLICY "Users can update land_opportunities" ON land_opportunities
-            FOR UPDATE USING (auth.uid() IS NOT NULL);
+            FOR UPDATE USING (auth.uid() = created_by) WITH CHECK (auth.uid() = created_by);
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can delete land_opportunities' AND tablename = 'land_opportunities') THEN
         CREATE POLICY "Users can delete land_opportunities" ON land_opportunities
-            FOR DELETE USING (auth.uid() IS NOT NULL);
+            FOR DELETE USING (auth.uid() = created_by);
     END IF;
 END $$;
 
@@ -168,12 +168,12 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update contact_meetings' AND tablename = 'contact_meetings') THEN
         CREATE POLICY "Users can update contact_meetings" ON contact_meetings
-            FOR UPDATE USING (auth.uid() IS NOT NULL);
+            FOR UPDATE USING (auth.uid() = created_by) WITH CHECK (auth.uid() = created_by);
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can delete contact_meetings' AND tablename = 'contact_meetings') THEN
         CREATE POLICY "Users can delete contact_meetings" ON contact_meetings
-            FOR DELETE USING (auth.uid() IS NOT NULL);
+            FOR DELETE USING (auth.uid() = created_by);
     END IF;
 END $$;
 
@@ -192,12 +192,12 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update contact_followups' AND tablename = 'contact_followups') THEN
         CREATE POLICY "Users can update contact_followups" ON contact_followups
-            FOR UPDATE USING (auth.uid() IS NOT NULL);
+            FOR UPDATE USING (auth.uid() = created_by) WITH CHECK (auth.uid() = created_by);
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can delete contact_followups' AND tablename = 'contact_followups') THEN
         CREATE POLICY "Users can delete contact_followups" ON contact_followups
-            FOR DELETE USING (auth.uid() IS NOT NULL);
+            FOR DELETE USING (auth.uid() = created_by);
     END IF;
 END $$;
 
@@ -206,3 +206,99 @@ ALTER PUBLICATION supabase_realtime ADD TABLE field_contacts;
 ALTER PUBLICATION supabase_realtime ADD TABLE land_opportunities;
 ALTER PUBLICATION supabase_realtime ADD TABLE contact_meetings;
 ALTER PUBLICATION supabase_realtime ADD TABLE contact_followups;
+
+-- ==============================================================================
+-- WhatsApp Campaigns Feature
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS whatsapp_campaigns (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    category TEXT,
+    message_template TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Indexes for efficient querying
+CREATE INDEX IF NOT EXISTS idx_wa_campaigns_created_by ON whatsapp_campaigns(created_by);
+CREATE INDEX IF NOT EXISTS idx_wa_campaigns_created_at ON whatsapp_campaigns(created_at);
+
+-- WhatsApp Templates Feature
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS whatsapp_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    category TEXT,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Indexes for efficient querying
+CREATE INDEX IF NOT EXISTS idx_wa_templates_created_by ON whatsapp_templates(created_by);
+
+-- RLS Policies for whatsapp_templates
+-- ==============================================================================
+
+ALTER TABLE whatsapp_templates ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view their own whatsapp templates' AND tablename = 'whatsapp_templates') THEN
+        CREATE POLICY "Users can view their own whatsapp templates"
+            ON whatsapp_templates FOR SELECT
+            USING (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert their own whatsapp templates' AND tablename = 'whatsapp_templates') THEN
+        CREATE POLICY "Users can insert their own whatsapp templates"
+            ON whatsapp_templates FOR INSERT
+            WITH CHECK (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update their own whatsapp templates' AND tablename = 'whatsapp_templates') THEN
+        CREATE POLICY "Users can update their own whatsapp templates"
+            ON whatsapp_templates FOR UPDATE
+            USING (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can delete their own whatsapp templates' AND tablename = 'whatsapp_templates') THEN
+        CREATE POLICY "Users can delete their own whatsapp templates"
+            ON whatsapp_templates FOR DELETE
+            USING (auth.uid() = created_by);
+    END IF;
+END $$;
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE whatsapp_campaigns ENABLE ROW LEVEL SECURITY;
+
+-- Strict RLS Policies
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view their own whatsapp_campaigns' AND tablename = 'whatsapp_campaigns') THEN
+        CREATE POLICY "Users can view their own whatsapp_campaigns" ON whatsapp_campaigns
+            FOR SELECT USING (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert their own whatsapp_campaigns' AND tablename = 'whatsapp_campaigns') THEN
+        CREATE POLICY "Users can insert their own whatsapp_campaigns" ON whatsapp_campaigns
+            FOR INSERT WITH CHECK (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update their own whatsapp_campaigns' AND tablename = 'whatsapp_campaigns') THEN
+        CREATE POLICY "Users can update their own whatsapp_campaigns" ON whatsapp_campaigns
+            FOR UPDATE USING (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can delete their own whatsapp_campaigns' AND tablename = 'whatsapp_campaigns') THEN
+        CREATE POLICY "Users can delete their own whatsapp_campaigns" ON whatsapp_campaigns
+            FOR DELETE USING (auth.uid() = created_by);
+    END IF;
+END $$;
+
+-- Enable Realtime Replication
+ALTER PUBLICATION supabase_realtime ADD TABLE whatsapp_campaigns;
